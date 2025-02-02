@@ -1,19 +1,16 @@
-version: '3.8'
-
-services:
+﻿services:
   schedulesync_api:
     build:
       context: .
+      dockerfile: ScheduleSync.API/Dockerfile
     container_name: schedulesync_api
     ports:
-      - "5004:5004"
-    depends_on:
-      - db
+      - "5004:80"  # 🔹 Porta exposta corretamente
     networks:
-      - monitoring_network
+      - monitoring_network  # 🔹 Compartilha a mesma redes
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
 
 networks:
   monitoring_network:
-    external: true
+    external: true  # 🔹 Garante que todas as APIs se comuniquem
