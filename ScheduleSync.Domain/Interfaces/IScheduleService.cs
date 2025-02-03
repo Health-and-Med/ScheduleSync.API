@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 
 namespace ScheduleSync.Domain.Interfaces
 {
-    public interface IUserRepository
+    public interface IScheduleService
     {
-        Task<User> GetUserByUsernameAsync(string email);
-        Task AddUserAsync(User user);
+        Task AddScheduleAsync(ScheduleAppointmentRequest schedule);
+        Task<Appointment> GetSheduleDoctor(int doctorId, DateTime scheduledDate);
     }
 }
 

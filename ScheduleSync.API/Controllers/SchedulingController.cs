@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using ScheduleSync.Application.Services;
 
 namespace ScheduleSync.API.Controllers
 {
@@ -14,32 +15,39 @@ namespace ScheduleSync.API.Controllers
     public class SchedulingController : ControllerBase
     {
         private readonly IConfiguration _configuration;
-        private readonly IUserService _userService;
+        private readonly IScheduleService _scheduleService;
+        private readonly RabbitMQService _rabbitMQService;
 
-        public SchedulingController(IConfiguration configuration, IUserService userService)
+        public SchedulingController(IConfiguration configuration, IScheduleService userService, RabbitMQService rabbitMQService)
         {
             _configuration = configuration;
-            _userService = userService;
+            _scheduleService = userService;
+            _rabbitMQService = rabbitMQService;
         }
 
-        [HttpPost("login")]
-        public async Task<IActionResult> LoginAsync([FromBody] LoginModel request)
+        [Authorize]
+        [HttpPost("schedule")]
+        public async Task<IActionResult> ScheduleAppointment([FromBody] ScheduleAppointmentRequest request)
         {
-            try
+            var exists = await _scheduleService.GetSheduleDoctor(request.DoctorId, request.ScheduledDate);
+
+            if (exists != null)
+                return BadRequest("Horário já agendado!");
+
+            var appointment = new Appointment
             {
-                var user = await _userService.AuthenticateAsync(request.Email, request.Password);
-                if (user == null)
-                    return Unauthorized();
+                DoctorId = request.DoctorId,
+                PatientId = request.PatientId,
+                ScheduledDate = request.ScheduledDate
+            };
 
+            await _scheduleService.AddScheduleAsync(request);
 
-                var token = GenerateJwtToken(request.Email);
-                return Ok(new { token });
-            }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
+            // Enviar notificação para o RabbitMQ
 
+            _rabbitMQService.PublishNewAppointment("matheusfonsecamfo@gmail.com","matheus","maria", "20/02/2025","13:00:55");
+
+            return Ok("Consulta agendada com sucesso!");
         }
 
         [HttpGet("ping")]
@@ -47,47 +55,6 @@ namespace ScheduleSync.API.Controllers
         public IActionResult Ping()
         {
             return Ok(new { message = "Pong! Você está autenticado." });
-        }
-
-        [HttpPost("register")]
-        [Authorize]
-        public async Task<IActionResult> Register([FromBody] RegisterModel register)
-        {
-            try
-            {
-                await _userService.RegisterAsync(register.Username, register.Cpf, register.Crm, register.Email, register.Password, register.Role);
-                return Ok();
-            }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
-        }
-
-        private string GenerateJwtToken(string email)
-        {
-            var jwtConfig = _configuration.GetSection("Jwt");
-            var key = Encoding.ASCII.GetBytes(jwtConfig["Secret"]!);
-
-            var claims = new[]
-            {
-                new Claim(ClaimTypes.Email, email),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-            };
-
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddHours(1),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
-                Issuer = jwtConfig["Issuer"],
-                Audience = jwtConfig["Audience"]
-            };
-
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-
-            return tokenHandler.WriteToken(token);
         }
     }
 }

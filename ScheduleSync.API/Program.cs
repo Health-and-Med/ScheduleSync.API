@@ -15,12 +15,15 @@ var builder = WebApplication.CreateBuilder(args);
 string connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
-builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IScheduleRepository, ScheduleRepository>();
 builder.Services.AddScoped<IDatabaseInitializer, DatabaseInitializer>();
-builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IScheduleService, SheduleService>();
 
 // 🔹 Conexão com o banco de dados PostgreSQL
 builder.Services.AddScoped<IDbConnection>(sp => new NpgsqlConnection(connectionString));
+
+// Configuração do RabbitMQ como um Singleton
+builder.Services.AddSingleton<RabbitMQService>();
 
 // 🔹 Configuração do JWT (Deve ser igual à configuração usada pelos microserviços)
 var jwtConfig = builder.Configuration.GetSection("Jwt");
