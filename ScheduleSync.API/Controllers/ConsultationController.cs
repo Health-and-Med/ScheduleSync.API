@@ -14,19 +14,40 @@ namespace ScheduleSync.API.Controllers
     public class ConsultationController : ControllerBase
     {
         private readonly IConsultasService _consultationService;
+        private readonly IAgendaService  _agendaService;
 
-        public ConsultationController(IConsultasService consultationService)
+        public ConsultationController(IConsultasService consultationService, IAgendaService agendaService)
         {
             _consultationService = consultationService;
+            _agendaService = agendaService;
         }
 
 
         [HttpPost("create")]
         [Authorize]
-        public async Task<IActionResult> CreateConsultation([FromBody] ConsultaModel consulta)
+        public async Task<IActionResult> CreateConsultation([FromBody] RequestCreateConsultasModel request)
         {
             try
             {
+                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+                var role = User.FindFirst(ClaimTypes.Role).Value;
+
+                if (role != "patient")
+                    return Forbid("Somente o perfil paciente poderá marcar consulta.");
+
+                var agendaDados = await _agendaService.GetScheduleDadosByIdAsync(request.AgendaId.Value);
+                var agenda = await _agendaService.GetScheduleByIdAsync(request.AgendaId.Value);
+                if (agendaDados != null)
+                    return BadRequest("Agenda já foi prenchida.");
+
+                if (agenda == null)
+                    return BadRequest("Agenda não existe.");
+
+                if (agenda != null && agenda.Disponivel == false)
+                    return BadRequest("Agenda não está mais disponível.");
+
+                var consulta = new ConsultaModel { AgendaId = request.AgendaId, Data = agenda.Data, Hora = agenda.HoraInicio,  MedicoId = agenda.MedicoId, Status = "Agendada" , PacienteId = userId };
+
                 var createdConsultation = await _consultationService.CreateConsultationAsync(consulta);
                 return Ok(createdConsultation);
             }

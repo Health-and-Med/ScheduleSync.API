@@ -3,12 +3,16 @@
   "WorkspaceRootPath": "C:\\Users\\Matheus\\Documents\\FIAP\\HACKATON\\ScheduleSync.API\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{B406CCDE-83BD-4B94-BF8A-865E4921A4E0}|ScheduleSync.Infrastructure\\ScheduleSync.Infrastructure.csproj|c:\\users\\matheus\\documents\\fiap\\hackaton\\schedulesync.api\\schedulesync.infrastructure\\repositories\\agendarepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{B406CCDE-83BD-4B94-BF8A-865E4921A4E0}|ScheduleSync.Infrastructure\\ScheduleSync.Infrastructure.csproj|solutionrelative:schedulesync.infrastructure\\repositories\\agendarepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{9424C95A-4BFD-4FE8-A70B-D87A1437E611}|ScheduleSync.API\\ScheduleSync.API.csproj|c:\\users\\matheus\\documents\\fiap\\hackaton\\schedulesync.api\\schedulesync.api\\controllers\\consultationcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9424C95A-4BFD-4FE8-A70B-D87A1437E611}|ScheduleSync.API\\ScheduleSync.API.csproj|solutionrelative:schedulesync.api\\controllers\\consultationcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{5C3471B8-B94B-4386-8570-2B1C27027084}|ScheduleSync.Application\\ScheduleSync.Application.csproj|c:\\users\\matheus\\documents\\fiap\\hackaton\\schedulesync.api\\schedulesync.application\\services\\agendaservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{5C3471B8-B94B-4386-8570-2B1C27027084}|ScheduleSync.Application\\ScheduleSync.Application.csproj|solutionrelative:schedulesync.application\\services\\agendaservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B406CCDE-83BD-4B94-BF8A-865E4921A4E0}|ScheduleSync.Infrastructure\\ScheduleSync.Infrastructure.csproj|c:\\users\\matheus\\documents\\fiap\\hackaton\\schedulesync.api\\schedulesync.infrastructure\\repositories\\agendarepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B406CCDE-83BD-4B94-BF8A-865E4921A4E0}|ScheduleSync.Infrastructure\\ScheduleSync.Infrastructure.csproj|solutionrelative:schedulesync.infrastructure\\repositories\\agendarepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{9424C95A-4BFD-4FE8-A70B-D87A1437E611}|ScheduleSync.API\\ScheduleSync.API.csproj|c:\\users\\matheus\\documents\\fiap\\hackaton\\schedulesync.api\\schedulesync.api\\controllers\\schedulecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -26,17 +30,17 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 1,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "ScheduleController.cs",
               "DocumentMoniker": "C:\\Users\\Matheus\\Documents\\FIAP\\HACKATON\\ScheduleSync.API\\ScheduleSync.API\\Controllers\\ScheduleController.cs",
               "RelativeDocumentMoniker": "ScheduleSync.API\\Controllers\\ScheduleController.cs",
               "ToolTip": "C:\\Users\\Matheus\\Documents\\FIAP\\HACKATON\\ScheduleSync.API\\ScheduleSync.API\\Controllers\\ScheduleController.cs",
               "RelativeToolTip": "ScheduleSync.API\\Controllers\\ScheduleController.cs",
-              "ViewState": "AgIAAI0AAAAAAAAAAAApwJwAAAAQAAAAAAAAAA==",
+              "ViewState": "AgIAAJAAAAAAAAAAAAApwJwAAAAQAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-02-07T16:42:27.685Z",
               "IsPinned": true,
@@ -44,7 +48,20 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 0,
+              "Title": "ConsultationController.cs",
+              "DocumentMoniker": "C:\\Users\\Matheus\\Documents\\FIAP\\HACKATON\\ScheduleSync.API\\ScheduleSync.API\\Controllers\\ConsultationController.cs",
+              "RelativeDocumentMoniker": "ScheduleSync.API\\Controllers\\ConsultationController.cs",
+              "ToolTip": "C:\\Users\\Matheus\\Documents\\FIAP\\HACKATON\\ScheduleSync.API\\ScheduleSync.API\\Controllers\\ConsultationController.cs",
+              "RelativeToolTip": "ScheduleSync.API\\Controllers\\ConsultationController.cs",
+              "ViewState": "AgIAAAwAAAAAAAAAAAAAABkAAABUAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-02-07T18:39:26.735Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
               "Title": "RabbitMQService.cs",
               "DocumentMoniker": "C:\\Users\\Matheus\\Documents\\FIAP\\HACKATON\\ScheduleSync.API\\ScheduleSync.Application\\Services\\RabbitMQService.cs",
               "RelativeDocumentMoniker": "ScheduleSync.Application\\Services\\RabbitMQService.cs",
@@ -57,13 +74,13 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 2,
               "Title": "AgendaRepository.cs",
               "DocumentMoniker": "C:\\Users\\Matheus\\Documents\\FIAP\\HACKATON\\ScheduleSync.API\\ScheduleSync.Infrastructure\\Repositories\\AgendaRepository.cs",
               "RelativeDocumentMoniker": "ScheduleSync.Infrastructure\\Repositories\\AgendaRepository.cs",
               "ToolTip": "C:\\Users\\Matheus\\Documents\\FIAP\\HACKATON\\ScheduleSync.API\\ScheduleSync.Infrastructure\\Repositories\\AgendaRepository.cs",
               "RelativeToolTip": "ScheduleSync.Infrastructure\\Repositories\\AgendaRepository.cs",
-              "ViewState": "AgIAAGoAAAAAAAAAAAApwHkAAAAeAAAAAAAAAA==",
+              "ViewState": "AgIAAHMAAAAAAAAAAAApwH8AAAAQAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-02-07T10:01:31.506Z",
               "EditorCaption": ""
@@ -76,7 +93,7 @@
               "RelativeDocumentMoniker": "ScheduleSync.Application\\Services\\AgendaService.cs",
               "ToolTip": "C:\\Users\\Matheus\\Documents\\FIAP\\HACKATON\\ScheduleSync.API\\ScheduleSync.Application\\Services\\AgendaService.cs",
               "RelativeToolTip": "ScheduleSync.Application\\Services\\AgendaService.cs",
-              "ViewState": "AgIAAEMAAAAAAAAAAAAlwE4AAAAQAAAAAAAAAA==",
+              "ViewState": "AgIAAEEAAAAAAAAAAAAWwE8AAAAQAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-02-07T10:07:25.046Z",
               "EditorCaption": ""
