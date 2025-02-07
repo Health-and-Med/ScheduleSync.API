@@ -9,19 +9,20 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
+using ScheduleSync.Infrastructure.Repositories;
 
 namespace ScheduleSync.Tests
 {
     public class UserServiceTests
     {
-        private readonly Mock<IScheduleRepository> _mockContactRepository;
-        private readonly IScheduleService _userService;
+        private readonly Mock<IAgendaRepository> _mockContactRepository;
+        private readonly IAgendaService _userService;
 
 
         public UserServiceTests()
         {
-            _mockContactRepository = new Mock<IScheduleRepository>();
-            _userService = new SheduleService(_mockContactRepository.Object);
+            _mockContactRepository = new Mock<IAgendaRepository>();
+            _userService = new AgendaService(_mockContactRepository.Object);
         }
 
         //[Fact]

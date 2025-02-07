@@ -11,13 +11,23 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 🔹 Configuração da string de conexão
+// 🔹 Configurar leitura de arquivos de configuração
+builder.Configuration
+    .SetBasePath(Directory.GetCurrentDirectory()) // Define o diretório base
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true) // Carrega appsettings.json
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true) // Carrega appsettings.Development.json em ambiente de dev
+    .AddEnvironmentVariables(); // Permite sobrescrever via variáveis de ambiente
+
+
+// 🔹 Configuração da string de conexão com PostgreSQL
 string connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
-builder.Services.AddScoped<IScheduleRepository, ScheduleRepository>();
+builder.Services.AddScoped<IAgendaRepository, AgendaRepository>();
+builder.Services.AddScoped<IConsultasRepository, ConsultasRepository>();
 builder.Services.AddScoped<IDatabaseInitializer, DatabaseInitializer>();
-builder.Services.AddScoped<IScheduleService, SheduleService>();
+builder.Services.AddScoped<IAgendaService, AgendaService>();
+builder.Services.AddScoped<IConsultasService, ConsultasService>();
 
 // 🔹 Conexão com o banco de dados PostgreSQL
 builder.Services.AddScoped<IDbConnection>(sp => new NpgsqlConnection(connectionString));

@@ -17,16 +17,42 @@ namespace ScheduleSync.Infrastructure.Repositories
 
         public void Initialize()
         {
-            var createScheduleTableQuery = @"
-                CREATE TABLE IF NOT EXISTS Schedule (
+            try
+            {
+                var createAgendaTableQuery = @"
+                CREATE TABLE IF NOT EXISTS Agenda (
                     Id SERIAL PRIMARY KEY,
-                    DoctorId INT NOT NULL,
-                    PatientId INT NOT NULL,
-                    ScheduledDate TIMESTAMP 
+                    MedicoId INT NOT NULL,
+                    Data Date NOT NULL,
+                    HoraInicio TIME,
+                    HoraFim TIME,
+                    Disponivel BOOLEAN,
+                    PrecoConsulta DECIMAL(10,2)
                 );
             ";
 
-            _dbConnection.Execute(createScheduleTableQuery);
+                var createConsultasTableQuery = @"
+                CREATE TABLE IF NOT EXISTS Consultas (
+                    Id SERIAL PRIMARY KEY,
+                    PacienteId INT NOT NULL,
+                    MedicoId INT NOT NULL,
+                    Data Date NOT NULL,
+                    Hora TIME,
+                    Status VARCHAR(20),
+                    JustificativaCancelamento TEXT,
+                    AgendaId INT NOT NULL
+                );
+            ";
+
+                _dbConnection.Execute(createAgendaTableQuery);
+                _dbConnection.Execute(createConsultasTableQuery);
+            }
+            catch (Exception e)
+            {
+
+                throw;
+            }
+            
         }
     }
 }
