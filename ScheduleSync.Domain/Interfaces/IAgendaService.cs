@@ -10,5 +10,6 @@ namespace ScheduleSync.Infrastructure.Repositories
         Task<IEnumerable<AgendaModel>> GetScheduleByDoctorIdAsync(int doctorId);
         Task<AgendaModel> GetScheduleByIdAsync(int id);
         Task UpdateScheduleAsync(AgendaModel agenda);
+        Task<AgendaDadosModel> GetScheduleDadosByIdAsync(int id);
     }
 }

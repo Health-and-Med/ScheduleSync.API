@@ -52,15 +52,48 @@ namespace ScheduleSync.Infrastructure.Repositories
             using var connection = new NpgsqlConnection(_connectionString);
             await connection.OpenAsync();
 
-            await connection.ExecuteAsync(
-                @"UPDATE Agenda SET 
-                    Data = @Data,
-                    HoraInicio = @HoraInicio,
-                    HoraFim = @HoraFim,
-                    Disponivel = @Disponivel,
-                    PrecoConsulta = @PrecoConsulta
-                WHERE Id = @Id", agenda);
+            using var transaction = await connection.BeginTransactionAsync(); // ⬅️ Inicia a transação
+
+            try
+            {
+                // Atualiza a Agenda
+                await connection.ExecuteAsync(
+                    @"UPDATE Agenda 
+            SET 
+                Data = @Data,
+                HoraInicio = @HoraInicio,
+                HoraFim = @HoraFim,
+                Disponivel = @Disponivel,
+                PrecoConsulta = @PrecoConsulta
+            WHERE Id = @Id",
+                    agenda, transaction); // ⬅️ Passa a transação
+
+                // Atualiza Consultas associadas à Agenda
+                await connection.ExecuteAsync(
+                    @"UPDATE Consultas 
+            SET 
+                Data = @Data,
+                Hora = @HoraInicio,
+                Status = CASE 
+                    WHEN @Disponivel = TRUE THEN 'Cancelada'
+                    ELSE Status
+                END
+            WHERE 
+                AgendaId = @Id
+            AND
+                Status IN ('Agendada', 'Aprovada')
+                ",
+                    agenda, transaction); // ⬅️ Passa a transação
+
+                await transaction.CommitAsync(); // ⬅️ Confirma as mudanças apenas se ambas as queries forem bem-sucedidas
+            }
+            catch
+            {
+                await transaction.RollbackAsync(); // ⬅️ Desfaz tudo se algo der errado
+                throw; // ⬅️ Repropaga o erro
+            }
         }
+
 
         public async Task DeleteScheduleAsync(int id)
         {
@@ -101,6 +134,49 @@ namespace ScheduleSync.Infrastructure.Repositories
                 await transaction.RollbackAsync();
                 throw;
             }
+        }
+
+        public async Task<AgendaDadosModel> GetScheduleDadosByIdAsync(int id)
+        {
+            using var connection = new NpgsqlConnection(_connectionString);
+            await connection.OpenAsync();
+
+            string sql = @$"SELECT 
+                          A.Id 
+                        , C.Id ConsultaId
+                        , P.Nome NomePaciente
+                        , P.Email EmailPaciente
+                        , P.Id PacienteId
+                        , M.Nome NomeMedico
+                        , M.Email EmailMedico
+                        , M.Id MedicoId
+                        , A.Data
+                        , A.HoraInicio
+                        , A.HoraFim
+                        , A.Disponivel
+                        , A.PrecoConsulta
+                    FROM Agenda A  
+                INNER JOIN
+                    Consultas C
+                ON
+                    A.ID = C.AgendaId
+                INNER JOIN
+                    Pacientes P
+                ON
+                    P.Id = C.PacienteId
+                INNER JOIN
+                    Medicos M
+                ON 
+                    M.Id = A.MedicoId
+                  WHERE 
+                        A.Id = @id 
+                  AND 
+                        C.Status IN('Agendada','Aprovada')
+
+                    ";
+
+
+            return await connection.QueryFirstOrDefaultAsync<AgendaDadosModel>(sql, new { id });
         }
     }
 

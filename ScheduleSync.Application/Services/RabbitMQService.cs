@@ -11,21 +11,21 @@ namespace ScheduleSync.Application.Services
 
         public RabbitMQService()
         {
-            var factory = new ConnectionFactory()
-            {
-                HostName = "rabbitmq",
-                Port = 5672,
-                UserName = "guest",
-                Password = "guest"
-            };
-
             //var factory = new ConnectionFactory()
             //{
-            //    HostName = "localhost",
+            //    HostName = "rabbitmq",
             //    Port = 5672,
             //    UserName = "guest",
             //    Password = "guest"
             //};
+
+            var factory = new ConnectionFactory()
+            {
+                HostName = "localhost",
+                Port = 5672,
+                UserName = "guest",
+                Password = "guest"
+            };
 
             _connection = factory.CreateConnection();
             _channel = _connection.CreateModel();
@@ -36,15 +36,13 @@ namespace ScheduleSync.Application.Services
                                  arguments: null);
         }
 
-        public void PublishNewAppointment(string doctorEmail, string doctorName, string patientName, string date, string time)
+        public void PublishNewAppointment(string doctorEmail, string patientEmail, string body)
         {
             var notification = new
             {
                 DoctorEmail = doctorEmail,
-                DoctorName = doctorName,
-                PatientName = patientName,
-                Date = date,
-                Time = time
+                PatientEmail = patientEmail,
+                Body = body
             };
 
             var messageBody = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(notification));
@@ -54,7 +52,7 @@ namespace ScheduleSync.Application.Services
                                  basicProperties: null,
                                  body: messageBody);
 
-            Console.WriteLine($"[✔] Notificação enviada para {doctorEmail}!");
+            Console.WriteLine($"Notificação enviada para {doctorEmail}!");
         }
     }
 }
