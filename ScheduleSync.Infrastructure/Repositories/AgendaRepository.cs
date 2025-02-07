@@ -75,7 +75,7 @@ namespace ScheduleSync.Infrastructure.Repositories
                 Data = @Data,
                 Hora = @HoraInicio,
                 Status = CASE 
-                    WHEN @Disponivel = TRUE THEN 'Cancelada'
+                    WHEN @Disponivel = FALSE THEN 'Cancelada'
                     ELSE Status
                 END
             WHERE 
@@ -94,13 +94,44 @@ namespace ScheduleSync.Infrastructure.Repositories
             }
         }
 
-
         public async Task DeleteScheduleAsync(int id)
         {
             using var connection = new NpgsqlConnection(_connectionString);
             await connection.OpenAsync();
 
-            await connection.ExecuteAsync("DELETE FROM Agenda WHERE Id = @id", new { id });
+            using var transaction = await connection.BeginTransactionAsync(); // ⬅️ Inicia a transação
+
+            try
+            {
+
+
+                // Atualiza a Agenda
+                await connection.ExecuteAsync(
+                    @"UPDATE Agenda 
+            SET 
+                Disponivel = FALSE
+            WHERE Id = @id",
+                    new { id }, transaction); // ⬅️ Passa a transação
+
+                // Atualiza Consultas associadas à Agenda
+                await connection.ExecuteAsync(
+                    @"UPDATE Consultas 
+            SET 
+                Status = 'Cancelada'
+            WHERE 
+                AgendaId = @id
+            AND
+                Status IN ('Agendada', 'Aprovada')
+                ",
+                    new { id }, transaction); // ⬅️ Passa a transação
+
+                await transaction.CommitAsync(); // ⬅️ Confirma as mudanças apenas se ambas as queries forem bem-sucedidas
+            }
+            catch
+            {
+                await transaction.RollbackAsync(); // ⬅️ Desfaz tudo se algo der errado
+                throw; // ⬅️ Repropaga o erro
+            }
         }
 
         public async Task<IEnumerable<AgendaModel>> CreateMultipleSchedulesAsync(List<AgendaModel> agendas)
@@ -145,10 +176,10 @@ namespace ScheduleSync.Infrastructure.Repositories
                           A.Id 
                         , C.Id ConsultaId
                         , P.Nome NomePaciente
-                        , P.Email EmailPaciente
+                        , P.Email PacienteEmail
                         , P.Id PacienteId
                         , M.Nome NomeMedico
-                        , M.Email EmailMedico
+                        , M.Email MedicoEmail
                         , M.Id MedicoId
                         , A.Data
                         , A.HoraInicio

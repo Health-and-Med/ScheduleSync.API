@@ -6,12 +6,12 @@ namespace ScheduleSync.Application.Services
     public class AgendaService : IAgendaService
     {
         private readonly IAgendaRepository _scheduleRepository;
-        private readonly IConsultasRepository  _consultasRepository;
+        private readonly RabbitMQService  _rabbitMQService;
 
         public AgendaService(IAgendaRepository userRepository, IConsultasRepository consultasRepository)
         {
             _scheduleRepository = userRepository;
-            _consultasRepository = consultasRepository;
+            _rabbitMQService = new RabbitMQService();
         }
 
         public async Task<IEnumerable<AgendaModel>> CreateMultipleSchedulesAsync(List<AgendaModel> agendaModels)
@@ -74,13 +74,16 @@ namespace ScheduleSync.Application.Services
         {
             try
             {
+                var agendaDados = await _scheduleRepository.GetScheduleDadosByIdAsync(id);
+                var agenda = await _scheduleRepository.GetScheduleByIdAsync(id);
                 await _scheduleRepository.DeleteScheduleAsync(id);
+                await NotificarAsync(agenda, "Cancelada", agendaDados);
 
             }
             catch (Exception e)
             {
 
-                throw;
+                    throw;
             }
         }
 
@@ -129,34 +132,39 @@ namespace ScheduleSync.Application.Services
         {
             try
             {
-
-
-
-
-                await _scheduleRepository.UpdateScheduleAsync(agenda);
                 var agendaDados = await _scheduleRepository.GetScheduleDadosByIdAsync(agenda.Id.Value);
-
-                if (agendaDados != null && agendaDados.PacienteId != null && agendaDados.PacienteId > 0)
-                {
-                    string status = agendaDados.Disponivel == true ? "Aprovada" : "Cancelada";
-                    string mensagem = @$"Consulta Atualizada:
-                                        Nome Médico: {agendaDados.NomeMedico}
-                                        Nome Paciente: {agendaDados.NomePaciente}
-                                        Data: {agendaDados.Data.Value.ToString("dd/MM/yyyy")}
-                                        Hora: {agendaDados.HoraInicio.ToString("HH:mm")}
-                                        Hora Fim: {agendaDados.HoraFim.ToString("HH:mm")}
-                                        Status: {status}
-                                        ";
-                    // Enviar notificação para o RabbitMQ
-                    var rabbitMQService = new RabbitMQService();
-                    rabbitMQService.PublishNewAppointment(agendaDados.PacienteEmail, agendaDados.PacienteEmail, mensagem);
-                }
-
+                await _scheduleRepository.UpdateScheduleAsync(agenda);
+                string status = agenda.Disponivel == true ? "Aprovada" : "Cancelada";
+                await NotificarAsync(agenda, status, agendaDados);
             }
             catch (Exception e)
             {
 
                 throw;
+            }
+        }
+
+        private async Task NotificarAsync(AgendaModel agenda, string status, AgendaDadosModel agendaDados)
+        {
+
+            if (agendaDados != null && agendaDados.PacienteId != null && agendaDados.PacienteId > 0)
+            {
+
+                // Formata os horários corretamente para exibição
+                string horaInicioFormatada = agendaDados.HoraInicio.ToString(@"hh\:mm\:ss");
+                string horaFimFormatada = agendaDados.HoraFim.ToString(@"hh\:mm\:ss");
+
+                // Monta a mensagem
+                string mensagem = @$"Consulta Atualizada:{Environment.NewLine}
+                                         Nome Médico: {agendaDados.NomeMedico}{Environment.NewLine}
+                                         Nome Paciente: {agendaDados.NomePaciente}{Environment.NewLine}
+                                         Data: {agendaDados.Data?.ToString("dd/MM/yyyy") ?? "Data não informada"}{Environment.NewLine}
+                                         Hora: {horaInicioFormatada}{Environment.NewLine}
+                                         Hora Fim: {horaFimFormatada}{Environment.NewLine}
+                                         Status: {status}";
+
+
+                _rabbitMQService.PublishNewAppointment(agendaDados.MedicoEmail, agendaDados.PacienteEmail, mensagem);
             }
         }
     }
