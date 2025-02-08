@@ -38,7 +38,7 @@ namespace ScheduleSync.API.Controllers
                 var agendaDados = await _agendaService.GetScheduleDadosByIdAsync(request.AgendaId.Value);
                 var agenda = await _agendaService.GetScheduleByIdAsync(request.AgendaId.Value);
                 if (agendaDados != null)
-                    return BadRequest("Agenda já foi prenchida.");
+                    return BadRequest("Agenda já foi preenchida.");
 
                 if (agenda == null)
                     return BadRequest("Agenda não existe.");
@@ -104,7 +104,6 @@ namespace ScheduleSync.API.Controllers
                 }
 
 
-
                 await _consultationService.UpdateConsultationAsync(consulta);
                 return Ok(new { message = "Consulta atualizada com sucesso." });
             }
@@ -142,7 +141,8 @@ namespace ScheduleSync.API.Controllers
                     if (existingConsultation.PacienteId != userId)
                         return Forbid("Apenas o próprio paciente pode cancelar esta consulta.");
                 }
-
+                string acao = role == "patient" ? "Paciente" : "Médico";
+                justificativa = $"Consulta Cancelada pelo {acao}, Justificativa: {justificativa}";
 
                 await _consultationService.DeleteConsultationAsync(id, justificativa);
                 return Ok(new { message = "Consulta cancelada com sucesso." });
@@ -162,8 +162,15 @@ namespace ScheduleSync.API.Controllers
         {
             try
             {
-                //  Obtém o ID do médico autenticado
+
+                //  Obtém o ID do paciente autenticado
                 var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+                var role = User.FindFirst(ClaimTypes.Role).Value;
+
+                if (role == "patient")
+                {
+                        return Forbid("Apenas o médico pode aprovar esta consulta.");
+                }
 
                 //  Verifica se o médico pode aprovar a consulta
                 var existingConsultation = await _consultationService.GetConsultationByIdAsync(id);

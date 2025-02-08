@@ -20,7 +20,20 @@ namespace ScheduleSync.Application.Services
         {
             try
             {
+                var consulta = await _consultasRepository.GetConsultationByIdAsync(id);
+                if (consulta == null)
+                    throw new Exception("Consulta não existe na base.");
+
+                if (consulta.Status == "Cancelada")
+                    throw new Exception("Consulta já foi cancelada.");
+
+                if (consulta.Status == "Aprovada")
+                    throw new Exception("Consulta já foi aprovada.");
+
+                var agenda = await _agendaRepository.GetScheduleByIdAsync(consulta.AgendaId.Value);
                 await _consultasRepository.ApproveConsultationAsync(id);
+                var agendaDados = await _agendaRepository.GetScheduleDadosByIdAsync(consulta.AgendaId.Value);
+                await NotificarAsync(agenda, "Consulta Aprovada", agendaDados);
             }
             catch (Exception e)
             {
@@ -33,9 +46,9 @@ namespace ScheduleSync.Application.Services
         {
             try
             {
-                var agenda = await _agendaRepository.GetScheduleByIdAsync(consulta.Id.Value);
+                var agenda = await _agendaRepository.GetScheduleByIdAsync(consulta.AgendaId.Value);
                 var newconsulta = await _consultasRepository.CreateConsultationAsync(consulta);
-                var agendaDados = await _agendaRepository.GetScheduleDadosByIdAsync(consulta.Id.Value);
+                var agendaDados = await _agendaRepository.GetScheduleDadosByIdAsync(consulta.AgendaId.Value);
                 await NotificarAsync(agenda, "Consulta Agendada", agendaDados);
                 return newconsulta;
             }
@@ -50,7 +63,13 @@ namespace ScheduleSync.Application.Services
         {
             try
             {
+                var consulta = await _consultasRepository.GetConsultationByIdAsync(id);
+                if (consulta.Status == "Cancelada")
+                    throw new Exception("Consulta já está cancelada.");
+                var agendaDados = await _agendaRepository.GetScheduleDadosByIdAsync(consulta.AgendaId.Value);
+                var agenda = await _agendaRepository.GetScheduleByIdAsync(consulta.AgendaId.Value);
                 await _consultasRepository.DeleteConsultationAsync(id, justificativa);
+                await NotificarAsync(agenda, "Consulta Cancelada", agendaDados, justificativa);
             }
             catch (Exception e)
             {
@@ -89,7 +108,11 @@ namespace ScheduleSync.Application.Services
         {
             try
             {
+                var agenda = await _agendaRepository.GetScheduleByIdAsync(consulta.AgendaId.Value);
                 await _consultasRepository.UpdateConsultationAsync (consulta);
+                var agendaDados = await _agendaRepository.GetScheduleDadosByIdAsync(consulta.AgendaId.Value);
+                await NotificarAsync(agenda, "Consulta Editada", agendaDados);
+
             }
             catch (Exception e)
             {
@@ -98,7 +121,7 @@ namespace ScheduleSync.Application.Services
             }
         }
 
-        private async Task NotificarAsync(AgendaModel agenda, string status, AgendaDadosModel agendaDados)
+        private async Task NotificarAsync(AgendaModel agenda, string status, AgendaDadosModel agendaDados, string justificativa = null)
         {
 
             if (agendaDados != null && agendaDados.PacienteId != null && agendaDados.PacienteId > 0)
@@ -109,13 +132,16 @@ namespace ScheduleSync.Application.Services
                 string horaFimFormatada = agendaDados.HoraFim.ToString(@"hh\:mm\:ss");
 
                 // Monta a mensagem
-                string mensagem = @$"Consulta Atualizada:{Environment.NewLine}
-                                         Nome Médico: {agendaDados.NomeMedico}{Environment.NewLine}
-                                         Nome Paciente: {agendaDados.NomePaciente}{Environment.NewLine}
-                                         Data: {agendaDados.Data?.ToString("dd/MM/yyyy") ?? "Data não informada"}{Environment.NewLine}
-                                         Hora: {horaInicioFormatada}{Environment.NewLine}
-                                         Hora Fim: {horaFimFormatada}{Environment.NewLine}
-                                         Status: {status}";
+                string mensagem = @$"<strong>{status}</strong>:<br>
+                     <strong>Nome Médico</strong>: {agendaDados.NomeMedico}<br>
+                     <strong>Nome Paciente</strong>: {agendaDados.NomePaciente}<br>
+                     <strong>Data</strong>: {agendaDados.Data?.ToString("dd/MM/yyyy") ?? "Data não informada"}<br>
+                     <strong>Hora</strong>: {horaInicioFormatada}<br>
+                     <strong>Hora Fim</strong>: {horaFimFormatada}<br>
+                     <strong>Status</strong>: {status}<br>
+                     <strong>Justificativa</strong>: {justificativa}<br>
+                    ";
+
 
 
                 _rabbitMQService.PublishNewAppointment(agendaDados.MedicoEmail, agendaDados.PacienteEmail, mensagem);

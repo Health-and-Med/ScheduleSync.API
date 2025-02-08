@@ -30,17 +30,37 @@ namespace ScheduleSync.Infrastructure.Repositories
 
         public async Task<ConsultaModel> CreateConsultationAsync(ConsultaModel consulta)
         {
-            var query = @"
-                INSERT INTO Consultas (PacienteId, MedicoId, Data, Hora, Status, JustificativaCancelamento, AgendaId)
-                VALUES (@PacienteId, @MedicoId, @Data, @Hora, @Status, @JustificativaCancelamento, @AgendaId)
-                RETURNING Id;";
+            var insertQuery = @"
+                    INSERT INTO Consultas (PacienteId, MedicoId, Data, Hora, Status, JustificativaCancelamento, AgendaId)
+                    VALUES (@PacienteId, @MedicoId, @Data, @Hora, @Status, @JustificativaCancelamento, @AgendaId)
+                    RETURNING Id;
+                        ";
+
+            var updateQuery = @"
+                            UPDATE Agenda SET DISPONIVEL = FALSE WHERE ID = @AgendaId;
+                                ";
 
             using var connection = new NpgsqlConnection(_connectionString);
             await connection.OpenAsync();
 
-            int id = await connection.ExecuteScalarAsync<int>(query, consulta);
-            return await GetConsultationByIdAsync(id);
+            using var transaction = await connection.BeginTransactionAsync(); // Inicia a transação
+
+            try
+            {
+                int id = await connection.ExecuteScalarAsync<int>(insertQuery, consulta, transaction);
+                await connection.ExecuteAsync(updateQuery, consulta, transaction);
+
+                await transaction.CommitAsync(); // Confirma a transação
+
+                return await GetConsultationByIdAsync(id);
+            }
+            catch (Exception)
+            {
+                await transaction.RollbackAsync(); // Desfaz a transação em caso de erro
+                throw;
+            }
         }
+
 
         public async Task<ConsultaModel> GetConsultationByIdAsync(int id)
         {
